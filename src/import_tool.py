@@ -17,6 +17,10 @@ def import_data_poetry(path):
     df['count_w']=df['Poem'].apply(lambda x:len(x.replace('\n',' ').split(' ')))
     print('the column count_w (numbers of words by poem) was creatted, description:')
     print(df['count_w'].describe())
+    df['count_wu']=df['Poem'].apply(lambda x:len(set(x.replace('\n',' ').split(' '))))
+    print('the column count_wu (numbers of words (non repeted) by poem) was creatted, description:')
+    print(df['count_wu'].describe())
+            
 
 
 

@@ -1,0 +1,1 @@
+Programa para el análisis de poesias de la Poetry Foundation Poems, enriquecida con la información del año de creación de la poesía. El programa permite hacer consultas por año, por palabra. Además, trae por defecto, análisis sobre las palabras que son usadas una sola vez (con más de 4:w carácteres).

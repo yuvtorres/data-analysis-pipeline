@@ -4,6 +4,8 @@ import numpy as np
 import re
 from datetime import datetime
 import timeit
+import requests
+from bs4 import BeautifulSoup
 
 # function to fit the Poem for analysis
 def fit_Poem(poem):
@@ -62,13 +64,20 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
     # this option is deactivate by default
 
     if create_unique: build_unique_word(df)
-    df_uw=pd.read_csv('output/unique_words.txt')
+    df_uw=pd.read_csv('output/unique_words.csv')
     if ini_stats: print(f'the uw variable was created:\n {df_uw.describe()}')
     
-    # Create the variable "b-year" takes time, it is done making a query to wikipedi API
-    if create_born_wiki:create_looking_for_year()
-    df_au_ye=pd.read_csv('output/byear_wiki.txt')
+    # Create the variable "b-year" takes time, it is done making a query to 
+    # wikipedi API and scrapping the poetry foundation
 
+    authors=set([e for e in df.Poet])
+    #if create_born_wiki:create_looking_for_year(authors) and False
+    df_au_ye=pd.read_csv('output/byear_wiki.csv')
+    print(df_au_ye)
+    
+    if create_born_wiki:create_looking_for_year_scarp(authors)
+    df_au_ye2=pd.read_csv('output/byear_pfun.csv')
+    
     
     return df
      
@@ -81,7 +90,7 @@ def analysis_word(df,word):
 def build_unique_word(df):
     try:
         print('\n--> Building the analysis by unique words')
-        f=open('output/unique_words.txt','w')
+        f=open('output/unique_words.csv','w')
         start = timeit.default_timer()
         f.write('id_Poem,unique word\n')
         for k in range(len(df['Poem_fit'])):
@@ -97,8 +106,8 @@ def build_unique_word(df):
         print(f'Error building the analysis of unique words\n {start}\n {f} \n')
         return False
     
-def create_looking_for_year(author):
-    print('--> Beginning the query to MediaWiki API')
+def create_looking_for_year(authors):
+    print('\n--> Beginning the query to MediaWiki API\n')
     start = timeit.default_timer()
     S = requests.Session()
     URL = "https://en.wikipedia.org/w/api.php"
@@ -114,7 +123,7 @@ def create_looking_for_year(author):
         try:
             R = S.get(url=URL, params=PARAMS)
         except:
-            print(f"error in query API wiki:{PARAMS}")
+            print(f"\n!!!! error in query API wiki:{PARAMS}")
         DATA = R.json()
         if len(DATA['query']['search'])>0:
             if DATA['query']['search'][0]['title'] == author:
@@ -128,16 +137,47 @@ def create_looking_for_year(author):
                 }
         R = S.get(url=URL, params=PARAMS)
         DATA = R.json()
-        data_bs=BeautifulSoup(DATA["parse"]["text"]["*"])
-        data_bs.select('span.bday')[0].text
-        date_born = datetime.strptime(data_bs.select('span.bday')[0].text, '%Y-%m-%d')
-        au_wi_born.append(author,date_born)
+        data_bs=BeautifulSoup(DATA["parse"]["text"]["*"],"lxml")
+        if len( data_bs.select('span.bday') ) > 0:
+                data_str=data_bs.select('span.bday')[0].text
+                if len(data_str)==4:
+                    date_born = datetime.strptime(data_str, '%Y')
+                elif len(data_str)==10:
+                    date_born = datetime.strptime(data_bs.select('span.bday')[0].text, '%Y-%m-%d')
+                else:
+                    date_born=date_str
 
+                au_wi_born.append([author,date_born])
+        else:
+            print(author)
+    
     df=pd.DataFrame(au_wi_born)
+    print(df)
+    print('Saving wiki query')
     df.to_csv('output/byear_wiki.csv')
     stop = timeit.default_timer()
-    print('\n--> Total time query to MediaWiki: ', stop - start) 
-    print("We can check {len(authors_wiki)} birthday date from {len(autrhos)} Poets")
+    print('\n--> Total time query to MediaWiki: ', datetime.fromtimestamp(stop - start) ) 
+    print("We can check {len(authors_wiki)} birthday date from {len(authors)} Poets")
+    
+    return True
+
+def create_looking_for_year_scarp(authors):
+    print('\n--> Beginning the scram to poetry foundation\n')
+    start = timeit.default_timer()
+    S = requests.Session()
+
+    link_authors=[]
+    for author in authors:
+        author = author.replace(' ','%20')
+        URL = "https://www.poetryfoundation.org/search?query="+author+"&refinement=poets"
+        R = S.get(url=URL)
+        data_bs=BeautifulSoup(R.text)
+        link_n=data_bs.select('.c-hdgSans > a:nth-of-type(1)')
+        link_author.append([author, link_n[0]['href']])
+    
+    df=pd(link_author)
+    print("\n--> saving data...\n" )
+    print(df)
+    df.to_csv("output/byear_pfun.csv")
 
     return True
-    

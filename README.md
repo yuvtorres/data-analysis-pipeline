@@ -11,15 +11,14 @@ The analysis will use a public database from [kaggle](https://www.kaggle.com/tgd
 - Number of words used (non repeated)
 - List of words used one time (for each poem)
 
-In order to find trends, it is necessary to join some data-time related with each poem. The data decided is the date of born of the Poet.
-
+In order to find trends, it is necessary to join some data-time related with each poem. The data decided is the date of born of the Poet 
 - Date the Poet was born (from Wikipedia API, and some webscraping)
 
 Also, its possible to make a general analysis of the words used by decade and see which are the most used words in each decade or what words have stopped being used.
 
-## The facts
+## The Reports
 
-
+The analysis by word is limited to words that have more than four characters.
 
 ## Conclusion
 

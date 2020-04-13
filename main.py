@@ -19,15 +19,15 @@ parser.add_argument('--ini_stat', action='store_true',
 parser.add_argument('--create_unique_word', action='store_true',
         help='Rebuild the analysis by unique word (takes about 20 sec!)')
 parser.add_argument('--query_ybird_wiki', action='store_true',
-        help='Remake the complete query for year of born to wikipedia API (takes about 5 min!)')
+        help='Remake the complete query for year of born in wikipedia API and scraping Poetry foundation (takes about 5 min!)')
 
 # optional arguments for the analysis
-parser.add_argument('--word', metavar='W', type=str, help='Show the statistics by decade of the word')
-parser.add_argument('--year', metavar='Y', type=int, help='Show the statistics of the Year when it is possible')
+parser.add_argument('--word', metavar='W', type=str,nargs='+',help='Show the statistics by decade of the word')
+parser.add_argument('--year', metavar='Y', type=int,nargs='+',help='Show the statistics of the Year when it is possible')
 parser.add_argument('--general', action='store_true', help='If active a general report is generated')
 
 #optional arguments for the report
-parser.add_argument('--mailto', metavar='W', type=str, help='Send a report to the email address provided, this command expects a valid email as parameter.')
+parser.add_argument('--mailto', type=str,nargs='+', help='Send a report to the email address provided, this command expects a valid email as parameter.')
 
 args = parser.parse_args()
 
@@ -46,3 +46,11 @@ if year:
 
 if general:
     analysis_general(df)
+
+# Generate the report
+if mailto:
+    generate_mail_report(df,mailto)
+else:
+    generate_report(df)
+
+

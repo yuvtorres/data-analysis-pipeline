@@ -73,11 +73,11 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
     authors=set([e for e in df.Poet])
     if create_born_wiki:create_looking_for_year(authors) 
     df_au_ye=pd.read_csv('data/byear_wiki.csv')
-    print(df_au_ye)
+    if ini_stats:print(df_au_ye)
     
     if create_born_wiki:create_looking_for_year_scarp(authors)
     df_au_ye2=pd.read_csv('data/byear_pfun.csv')
-    print(df_au_ye2)
+    if ini_stats:print(df_au_ye2)
     
     return df
      
@@ -137,7 +137,6 @@ def create_looking_for_year(authors):
         data_bs=BeautifulSoup(DATA["parse"]["text"]["*"],"lxml")
         if len( data_bs.select('span.bday') ) > 0:
                 data_str=data_bs.select('span.bday')[0].text
-                print(data_str)
                 if len(data_str)==4:
                     date_born = datetime.strptime(data_str, '%Y')
                 elif len(data_str)==10:
@@ -146,11 +145,8 @@ def create_looking_for_year(authors):
                     date_born=date_str
 
                 au_wi_born.append([author,date_born])
-        else:
-            print(author)
     
     df=pd.DataFrame(au_wi_born,columns=['Poet','birthday'])
-    print(df)
     print('Saving wiki query')
     df.to_csv('data/byear_wiki.csv')
     print('\n--> Total time query to MediaWiki: ', round(time.time() - start,2) ) 
@@ -173,9 +169,18 @@ def create_looking_for_year_scarp(authors):
         if len(link_n)>0:
             link_authors.append([author, link_n[0]['href']])
     
-    df=pd.DataFrame(link_authors,columns=['Poet','birthday'])
+    year_author=[]
+    for link in link_autors:
+        URL="https://www.poetryfoundation.org"+link[1]
+        R=S.get(url=URL)
+        data_bs=BeautifulSoup(R.text)
+        birthday=data_bs.select('span.c-txt_poetMeta')
+        if len(birthday)>0:
+            year_author.append([link[0] ,birthday[0].text[:4]])
+
+
+    df=pd.DataFrame(year_author,columns=['Poet','birthday'])
     print("\n--> saving data...\n" )
-    print(df)
     df.to_csv("data/byear_pfun.csv")
 
     return True

@@ -3,6 +3,7 @@
 #libraries
 import numpy as np 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Analysis by word:
 # Receive the dataframe and a word. Return True if the word is present
@@ -20,8 +21,13 @@ def analysis_word(df,word):
     
     Poets=[poet for poet in df_uws['id_Poem']]
     Numbers_poets=len(Poets)
-    years_poet=df['year']
+    
+    years_poet=df['year'].loc[df['Poet']==Poets[0]]
     years=[df['year'].loc[df['Poet']==poet] for poet in Poets]
+    
+    plt.bar([])
+    plt.ylabel('number of poems')
+    plt.show()
     
     return True
 

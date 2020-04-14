@@ -3,7 +3,7 @@ import argparse
 import sys
 sys.path.insert(0, 'src/')
 from import_tool import import_data_poetry
-from analysis import analysis_word
+from analysis import analysis_unique_word
 from analysis import analysis_year
 from analysis import analysis_general
 from report import generate_report
@@ -43,23 +43,23 @@ def main():
     tipo_var=[]
     # Get the analysis by words
     if args.word:
-        analysis_word(df,args.word)
-        tipo_var.append(["word",arg.word])
+        analysis_unique_word(df,args.word[0])
+        tipo_var.append(["word",args.word[0]])
     
     if args.year:
-        analysis_year(df,args.year)
-        tipo_var.append(["year",args.year])
+        analysis_year(df,args.year[0])
+        tipo_var.append(["year",args.year[0]])
     
     if args.general:
         analysis_general(df)
-        tipo_var.append(["general",'')
+        tipo_var.append(["general",''])
     
     # Generate the report
     for e in tipo_var:
         generate_report(e)
     
     if args.mailto:
-        generate_mail_report(args.mailto)
+        generate_mail_report(args.mailto[0])
 
 if __name__=="__main__":
     main()

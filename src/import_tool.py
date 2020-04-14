@@ -80,8 +80,9 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
 
     df_year = df_year.set_index(['Poet'])
 
-    df = df.drop(['Unnamed: 0'],axis =1)
-    df = df.join(df_year)
+    df=df.reset_index()
+    df_year=df_year.reset_index()
+    df = df.set_index(['Poet']).join(df_year.set_index(['Poet'])) 
 
     df=df.loc[df.count_w>3]
     df=df.drop(df.loc[df.Title=='!'].index)

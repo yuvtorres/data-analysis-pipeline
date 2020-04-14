@@ -16,11 +16,16 @@ In order to find trends, it is necessary to join some data-time related with eac
 
 ## The Reports
 
-The posiible reports are three at the moment:
+The posiible reports are three at the moment. their are saved in the "output" folder:
 
 1. Report by year: given a year, the program return a graph with the most prolific Poets.
+	* --year
 2. Report by word: given a word, the program return a graph with the use of this word as unique word in poems durign the time
+	* --word
 3. General report: the graph returned by the program is the evolution of the "complexity", calculate this complexity like the relation between words used just one time and the total number of words in the poem.
+	* --general
+
+(* --mailto : still for developed)
 
 ## Update the data and create unique words table
 
@@ -28,7 +33,5 @@ The program has two different option to manage the data base:
 
 * --query_ybirth 	: option to update year of birthday. Its could takes about an hour because the scrapping in the web is slow.
 * --create_unique_word	: with this option, the table of the unique words is recalculated. This table has the relation between words and Poems. 
-
-
 
 

@@ -40,22 +40,26 @@ def main():
     path='input/PoetryFoundationData.csv'
     df=import_data_poetry(path,args.ini_stat,args.create_unique_word,args.query_ybirth)
     
+    tipo_var=[]
     # Get the analysis by words
     if args.word:
         analysis_word(df,args.word)
+        tipo_var.append(["word",arg.word])
     
     if args.year:
         analysis_year(df,args.year)
+        tipo_var.append(["year",args.year])
     
     if args.general:
         analysis_general(df)
+        tipo_var.append(["general",'')
     
     # Generate the report
+    for e in tipo_var:
+        generate_report(e)
+    
     if args.mailto:
-        generate_mail_report(df,args.mailto)
-    else:
-        generate_report(df)
-
+        generate_mail_report(args.mailto)
 
 if __name__=="__main__":
     main()

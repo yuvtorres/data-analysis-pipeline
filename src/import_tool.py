@@ -8,13 +8,6 @@ import timeit
 import requests
 from bs4 import BeautifulSoup
 
-# function to fit the Poem for analysis
-def fit_Poem(poem):
-    poem_fit= " ".join(re.split('\W+', poem))
-    poem_fit=poem_fit.strip()
-    poem_fit=poem_fit.replace('\r','\n')
-    poem_fit=poem_fit.replace('\n\n','\n' )
-    return poem_fit
 
 ##### Function to import, create initial variables and show initial statistics #####
 def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wiki=False):
@@ -27,13 +20,15 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
     columnas_str='\n'.join((list(df.columns)))
     if ini_stats: print(f'\nThe columns are:\n{columnas_str}\n')
     
-    # Clean the column Unamed: 0
+    # Clean the column 'Unnamed: 0'
     df=df.drop(['Unnamed: 0'],axis=1)
-    if ini_stats: print(f"\nThe column 'Unnamed: 0' was dropped.\n")
     
     # clean the title column
     df.Title=df.Title.apply(lambda x: x.replace('\r\r\n','').strip()) 
- 
+    df.index.name='idPoem'
+    df=df.reset_index()
+    df=df.set_index(['idPoem','Poet'])
+    
     # Create the column with a fit Poem for analysis
     df['Poem_fit']=df['Poem'].apply(fit_Poem)
     # Create the variable of numbers of lines by poem
@@ -55,10 +50,10 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
 
     # Create the variable "complexity": numbers of unique words by total number of words
     df['complexity']=df[['count_w', 'count_wu']].apply(lambda x : x['count_wu']/x['count_w'],axis=1)
-    if ini_stats: print('\nthe column complexity (numbers of words (non repeted) / total number of words by poem) was creatted, description:')
+    if ini_stats: print('\nthe column complexity (numbers of words (non repeted) / total number of words by poem) was creatted, description:')    
     if ini_stats: print(df['complexity'].describe())
-   
-    print(f"""\nthe Poem {df.loc[df['count_w'].idxmax()].Title} from {df.loc[df['count_w'].idxmax()].Poet} id:{df['count_w'].idxmax()}, has the maximum numbers of words""")
+
+    print(f"""\nthe Poem {df.loc[df['count_w'].idxmax()].Title} from {df.loc[df['count_w'].idxmax()].index[0][1]} id:{df['count_w'].idxmax()}, has the maximum numbers of words""")
 
     # Create the variable "Unique words" takes about 30 minute, so 
     # this option is deactivate by default
@@ -70,15 +65,29 @@ def import_data_poetry(path, ini_stats=False,create_unique=False,create_born_wik
     # Create the variable "b-year" takes time, it is done making a query to 
     # wikipedi API and scrapping the poetry foundation
 
-    authors=set([e for e in df.Poet])
+    authors=set([e[1] for e in df.index])
     if create_born_wiki:create_looking_for_year(authors) 
-    df_au_ye=pd.read_csv('data/byear_wiki.csv')
-    if ini_stats:print(df_au_ye)
-    
+    df_au_ye = pd.read_csv('data/byear_wiki.csv')
+           
     if create_born_wiki:create_looking_for_year_scarp(authors)
-    df_au_ye2=pd.read_csv('data/byear_pfun.csv')
-    if ini_stats:print(df_au_ye2)
+    df_au_ye2 = pd.read_csv('data/byear_pfun.csv')
     
+    df_year = pd.concat([df_au_ye,df_au_ye2])
+    df_year['year'] = df_year['birthday'].apply(lambda x:get_year(x))
+    df_year = df_year.drop(['birthday'], axis=1)
+    df_year = df_year.drop_duplicates()
+    df_year.to_csv('data/year.csv')
+
+    df_year = df_year.set_index(['Poet'])
+
+    df = df.drop(['Unnamed: 0'],axis =1)
+    df = df.join(df_year)
+
+    df=df.loc[df.count_w>3]
+    df=df.drop(df.loc[df.Title=='!'].index)
+    df=df.drop(df.loc[df.Title=='0'].index)
+    if ini_stats: print(df)
+
     return df
      
 #Build the analisys of the unique words by poem in the df 
@@ -169,18 +178,37 @@ def create_looking_for_year_scarp(authors):
         if len(link_n)>0:
             link_authors.append([author, link_n[0]['href']])
     
+    print(f"\n--> making scram to poetry foundation {len(link_authors)} authors linked\n")
+   
     year_author=[]
-    for link in link_autors:
+    for link in link_authors:
         URL="https://www.poetryfoundation.org"+link[1]
         R=S.get(url=URL)
         data_bs=BeautifulSoup(R.text)
         birthday=data_bs.select('span.c-txt_poetMeta')
-        if len(birthday)>0:
-            year_author.append([link[0] ,birthday[0].text[:4]])
-
+        if len(birthday)>4:
+            if len(re.findall(r'[0-9]',birthday[:4]))==4:
+                year_author.append( [ link[0].replace('%20',' ') ,int( birthday[0].text[:4]) ] )
 
     df=pd.DataFrame(year_author,columns=['Poet','birthday'])
     print("\n--> saving data...\n" )
     df.to_csv("data/byear_pfun.csv")
 
     return True
+
+# function to fit the Poem for analysis
+def fit_Poem(poem):
+    poem_fit= " ".join(re.split('\W+', poem))
+    poem_fit=poem_fit.strip()
+    poem_fit=poem_fit.replace('\r','\n')
+    poem_fit=poem_fit.replace('\n\n','\n' )
+    return poem_fit
+
+# Function to fit some years
+def get_year(x):
+    if isinstance(x,str):
+        if len(re.findall(r"[0-9]",x[:4]))==4:
+            return int(x[:4])
+    return None
+
+

@@ -14,12 +14,21 @@ The analysis will use a public database from [kaggle](https://www.kaggle.com/tgd
 In order to find trends, it is necessary to join some data-time related with each poem. The data decided is the date of born of the Poet 
 - Date the Poet was born (from Wikipedia API, and some webscraping)
 
-Also, its possible to make a general analysis of the words used by decade and see which are the most used words in each decade or what words have stopped being used.
-
 ## The Reports
 
-The analysis by word is limited to words that have more than four characters.
+The posiible reports are three at the moment:
 
-## Conclusion
+1. Report by year: given a year, the program return a graph with the most prolific Poets.
+2. Report by word: given a word, the program return a graph with the use of this word as unique word in poems durign the time
+3. General report: the graph returned by the program is the evolution of the "complexity", calculate this complexity like the relation between words used just one time and the total number of words in the poem.
+
+## Update the data and create unique words table
+
+The program has two different option to manage the data base:
+
+* --query_ybirth 	: option to update year of birthday. Its could takes about an hour because the scrapping in the web is slow.
+* --create_unique_word	: with this option, the table of the unique words is recalculated. This table has the relation between words and Poems. 
+
+
 
 

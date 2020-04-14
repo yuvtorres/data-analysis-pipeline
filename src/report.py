@@ -1,5 +1,7 @@
 # Functions to generates reports
 from fpdf import FPDF
+import smtplib
+
 
 def generate_report(tipo_var):
     pdf = FPDF()
